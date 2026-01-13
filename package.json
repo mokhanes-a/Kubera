@@ -1,0 +1,29 @@
+{
+  "name": "kubera",
+  "version": "1.0.0",
+  "description": "AI text generation with Google web search using NeuroLink",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "ts-node main.ts"
+  },
+  "keywords": [
+    "ai",
+    "google",
+    "vertex",
+    "neurolink",
+    "text-generation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@juspay/neurolink": "^8.32.0",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
