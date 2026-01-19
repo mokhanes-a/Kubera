@@ -1,13 +1,13 @@
-import { searchProductPrices, WebSearchResponse } from "./web-search";
+import { searchProductPrices, WebSearchResponse } from "./services/web-search";
 import {
   analyzeCustomerFeedback,
   CustomerFeedbackResponse,
-} from "./customer-expectation";
+} from "./services/customer-expectation";
 import {
   analyzeMarketStrategy,
   getMerchantPriceFromCLI,
   MarketAnalysisResult,
-} from "./market-analysis";
+} from "./core/market-analysis";
 
 // Progress indicator utility
 function showProgress(message: string): void {

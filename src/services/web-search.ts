@@ -20,6 +20,7 @@ export interface WebSearchResponse {
 export interface WebSearchOptions {
   productName: string;
   images?: string[]; // Optional array of image URLs
+  videos?: string[]; // Optional array of video URLs
 }
 
 /**

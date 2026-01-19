@@ -1,8 +1,8 @@
 import { NeuroLink } from "@juspay/neurolink";
 import * as dotenv from "dotenv";
 import * as readline from "readline";
-import { WebSearchResponse } from "./web-search";
-import { CustomerFeedbackResponse } from "./customer-expectation";
+import { WebSearchResponse } from "../services/web-search";
+import { CustomerFeedbackResponse } from "../services/customer-expectation";
 
 dotenv.config();
 
