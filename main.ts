@@ -52,7 +52,7 @@ async function withRetry<T>(
 }
 
 async function main() {
-  const productName = "IQOO neo 10r 12 + 256";
+  const productName = "Transformer Series Gaming Chair";
 
   console.log("\n" + "=".repeat(60));
   console.log("🚀 KUBERA - AI-Powered Pricing & Market Analysis");
@@ -64,7 +64,7 @@ async function main() {
   let priceResult: WebSearchResponse;
   try {
     priceResult = await withRetry(
-      () => searchProductPrices({ productName , images: []}),
+      () => searchProductPrices({ productName , images: ["test/test2.png"]}),
       "Price search"
     );
     showComplete(`Found ${priceResult.results.length} retailers`);

@@ -258,25 +258,77 @@ function generateRuleBasedRecommendations(
 
   // ZONE 1: OVERPRICED
   if (zone.zone === "Overpriced") {
-    // Primary action: Price reduction
-    const suggestedReduction = Math.min(
-      priceDiff,
-      metrics.merchantPrice * 0.05 // Max 5% reduction
-    );
-    recommendations.push({
-      priority: 1,
-      action: `Reduce price by ₹${Math.round(suggestedReduction / 100) * 100} - ₹${Math.round((suggestedReduction * 1.3) / 100) * 100}`,
-      category: "Pricing",
-      confidence: zone.confidence,
-      rule: "OVERPRICED_DIRECT_REDUCTION",
-      reasoning: [
-        `Price is ${priceDiffPercent}% above market median`,
-        `Ranked ${metrics.competitiveRank} of ${metrics.totalRetailers} sellers`,
-      ],
-      expectedImpact: "Higher conversion and better visibility",
-    });
+    // Determine target price and reduction strategy based on severity
+    let targetPriceLow: number;
+    let targetPriceHigh: number;
+    let primaryRecommendation: string;
+    
+    if (metrics.priceIndex > 130) {
+      // Severely overpriced (>30% above market) - suggest psychological pricing at/below median
+      // Use psychological pricing (X999 format) to maximize appeal
+      const medianPsychological = Math.floor(metrics.medianMarketPrice / 1000) * 1000 - 1;
+      const medianSlightlyAbove = Math.floor(metrics.medianMarketPrice / 1000) * 1000 + 999;
+      
+      targetPriceLow = medianPsychological;
+      targetPriceHigh = medianSlightlyAbove;
+      primaryRecommendation = `Reduce price to ₹${targetPriceLow.toLocaleString()} - ₹${targetPriceHigh.toLocaleString()} (psychological pricing at market level)`;
+      
+      recommendations.push({
+        priority: 1,
+        action: primaryRecommendation,
+        category: "Pricing",
+        confidence: "High",
+        rule: "OVERPRICED_SEVERE",
+        reasoning: [
+          `Price Index of ${metrics.priceIndex.toFixed(1)} means you're ${priceDiffPercent}% above market median (₹${metrics.medianMarketPrice.toLocaleString()}), losing sales to competitors daily.`,
+          `Psychological pricing at ₹${targetPriceLow.toLocaleString()} appears significantly cheaper than ₹${Math.ceil(targetPriceLow / 1000) * 1000} while matching market expectations.`,
+          `Market range ₹${metrics.minMarketPrice.toLocaleString()}-₹${metrics.maxMarketPrice.toLocaleString()} shows ${metrics.totalRetailers - 1} retailers compete here; pricing at median captures maximum volume.`,
+        ],
+        expectedImpact: "Significant conversion improvement and market competitiveness",
+      });
+    } else if (metrics.priceIndex > 115) {
+      // Moderately overpriced (15-30% above) - close 60-70% of gap
+      const gapToClose = priceDiff * 0.65; // Close 65% of gap
+      targetPriceLow = Math.round((metrics.merchantPrice - gapToClose * 1.1) / 100) * 100;
+      targetPriceHigh = Math.round((metrics.merchantPrice - gapToClose * 0.9) / 100) * 100;
+      primaryRecommendation = `Reduce price to ₹${targetPriceLow.toLocaleString()} - ₹${targetPriceHigh.toLocaleString()}`;
+      
+      recommendations.push({
+        priority: 1,
+        action: primaryRecommendation,
+        category: "Pricing",
+        confidence: zone.confidence,
+        rule: "OVERPRICED_MODERATE",
+        reasoning: [
+          `Price ${priceDiffPercent}% above market median reduces conversion and visibility.`,
+          `Competitors at ₹${metrics.medianMarketPrice.toLocaleString()} are capturing price-sensitive ${customerFeedback.marketAnalysis.generalOpinion.targetAudience.toLowerCase()}.`,
+          `Current rank ${metrics.competitiveRank} of ${metrics.totalRetailers} indicates poor competitive position requiring adjustment.`,
+        ],
+        expectedImpact: "Higher conversion rates and better market visibility",
+      });
+    } else {
+      // Slightly overpriced (8-15% above) - small reduction
+      const suggestedReduction = priceDiff * 0.6; // Reduce 60% of gap
+      const lowerBound = Math.round(suggestedReduction / 100) * 100;
+      const upperBound = Math.round((suggestedReduction * 0.8) / 100) * 100;
+      primaryRecommendation = `Reduce price by ₹${lowerBound.toLocaleString()} - ₹${upperBound.toLocaleString()}`;
+      
+      recommendations.push({
+        priority: 1,
+        action: primaryRecommendation,
+        category: "Pricing",
+        confidence: zone.confidence,
+        rule: "OVERPRICED_MINOR",
+        reasoning: [
+          `Priced ${priceDiffPercent}% above median, minor reduction improves competitiveness.`,
+          `Market stability (spread: ${metrics.priceSpreadPercent.toFixed(1)}%) allows strategic price adjustment.`,
+          `Aligning closer to market average of ₹${metrics.medianMarketPrice.toLocaleString()} enhances conversion without sacrificing quality perception.`,
+        ],
+        expectedImpact: "Improved conversion without compromising brand positioning",
+      });
+    }
 
-    // Alternative: Value-add instead of price cut
+    // Alternative: Value-add instead of price cut (for all severity levels)
     recommendations.push({
       priority: 2,
       action: "Add value bundle instead of price cut",
@@ -284,25 +336,29 @@ function generateRuleBasedRecommendations(
       confidence: "Medium",
       rule: "OVERPRICED_VALUE_BUNDLE",
       reasoning: [
-        "Protects margin while improving perceived value",
-        "Bank discounts or free accessories reduce effective cost",
+        `Bundling protects margins while enhancing perceived value for ${customerFeedback.marketAnalysis.generalOpinion.targetAudience.toLowerCase()}.`,
+        `Bank discounts or free accessories effectively lower cost, attracting price-sensitive customers.`,
+        `Addresses customer motivator for an affordable price point without direct price reduction.`,
       ],
       expectedImpact: "Maintains margin while improving attractiveness",
     });
 
-    // Urgency tactics
-    recommendations.push({
-      priority: 3,
-      action: "Create urgency with flash sale or limited stock",
-      category: "Urgency",
-      confidence: "High",
-      rule: "OVERPRICED_URGENCY",
-      reasoning: [
-        "Time-limited offers overcome price resistance",
-        "Scarcity drives faster purchase decisions",
-      ],
-      expectedImpact: "Faster decisions, reduced comparison shopping",
-    });
+    // Urgency tactics (only for moderately overpriced, not severely overpriced)
+    if (metrics.priceIndex <= 130) {
+      recommendations.push({
+        priority: 3,
+        action: "Create urgency with flash sale or limited stock",
+        category: "Urgency",
+        confidence: "High",
+        rule: "OVERPRICED_URGENCY",
+        reasoning: [
+          `Time-limited flash sales can overcome price resistance for an overpriced product.`,
+          `Scarcity drives faster purchase decisions, converting ${customerFeedback.marketAnalysis.generalOpinion.targetAudience.toLowerCase()} quickly.`,
+          `${customerFeedback.marketAnalysis.generalOpinion.overallSentiment} customer sentiment could be leveraged to boost quick sales during urgency events.`,
+        ],
+        expectedImpact: "Faster decisions, reduced comparison shopping",
+      });
+    }
   }
 
   // ZONE 2: MARKET-ALIGNED
@@ -336,51 +392,113 @@ function generateRuleBasedRecommendations(
 
   // ZONE 3: UNDERPRICED
   else if (zone.zone === "Underpriced") {
-    const suggestedIncrease = Math.min(
-      metrics.medianMarketPrice - metrics.merchantPrice,
-      metrics.merchantPrice * 0.03 // Max 3% increase
-    );
+    const priceDiffFromMedian = metrics.medianMarketPrice - metrics.merchantPrice;
+    
+    // Determine target price and increase strategy based on severity
+    let targetPriceLow: number;
+    let targetPriceHigh: number;
+    let primaryRecommendation: string;
+    
+    if (metrics.priceIndex < 50) {
+      // Severely underpriced (>50% below market) - suggest psychological pricing at market level
+      // Use psychological pricing (X999 format) to maximize perceived value
+      const medianPsychological = Math.floor(metrics.medianMarketPrice / 1000) * 1000 - 1;
+      const medianSlightlyAbove = Math.floor(metrics.medianMarketPrice / 1000) * 1000 + 999;
+      
+      targetPriceLow = medianPsychological;
+      targetPriceHigh = medianSlightlyAbove;
+      primaryRecommendation = `Increase price to ₹${targetPriceLow.toLocaleString()} - ₹${targetPriceHigh.toLocaleString()} (psychological pricing at market level)`;
+      
+      recommendations.push({
+        priority: 1,
+        action: primaryRecommendation,
+        category: "Pricing",
+        confidence: "High",
+        rule: "UNDERPRICED_SEVERE",
+        reasoning: [
+          `Price Index of ${metrics.priceIndex.toFixed(1)} means severe underpricing at ${Math.abs(Math.round(100 - metrics.priceIndex))}% below market; you're losing ₹${Math.round(priceDiffFromMedian).toLocaleString()} per sale.`,
+          `Psychological pricing at ₹${targetPriceLow.toLocaleString()} captures market value while appearing more attractive than ₹${Math.ceil(targetPriceLow / 1000) * 1000}.`,
+          `Market median ₹${metrics.medianMarketPrice.toLocaleString()} shows customers willing to pay this; capture full margin without losing competitiveness.`,
+        ],
+        expectedImpact: "Significantly improved margins while maintaining competitive position",
+      });
+    } else if (metrics.priceIndex < 90) {
+      // Moderately underpriced (10-50% below) - suggest closing 50-70% of gap
+      const gapToClose = priceDiffFromMedian * 0.6; // Close 60% of gap
+      targetPriceLow = Math.round((metrics.merchantPrice + gapToClose * 0.8) / 100) * 100;
+      targetPriceHigh = Math.round((metrics.merchantPrice + gapToClose * 1.2) / 100) * 100;
+      primaryRecommendation = `Increase price to ₹${targetPriceLow.toLocaleString()} - ₹${targetPriceHigh.toLocaleString()}`;
+      
+      recommendations.push({
+        priority: 1,
+        action: primaryRecommendation,
+        category: "Pricing",
+        confidence: zone.confidence,
+        rule: "UNDERPRICED_MODERATE",
+        reasoning: [
+          `Price ${Math.abs(Math.round(100 - metrics.priceIndex))}% below market median leaves margin on the table.`,
+          `Competitors charging ₹${metrics.medianMarketPrice.toLocaleString()} indicates market acceptance of higher price.`,
+          `Current rank ${metrics.competitiveRank} of ${metrics.totalRetailers} provides room for strategic price increase.`,
+        ],
+        expectedImpact: "Improved margin while remaining competitive",
+      });
+    } else {
+      // Slightly underpriced (5-10% below) - small adjustment
+      const suggestedIncrease = priceDiffFromMedian * 0.5;
+      const lowerBound = Math.round(suggestedIncrease / 100) * 100;
+      const upperBound = Math.round((suggestedIncrease * 1.3) / 100) * 100;
+      primaryRecommendation = `Increase price by ₹${lowerBound.toLocaleString()} - ₹${upperBound.toLocaleString()}`;
+      
+      recommendations.push({
+        priority: 1,
+        action: primaryRecommendation,
+        category: "Pricing",
+        confidence: zone.confidence,
+        rule: "UNDERPRICED_MINOR",
+        reasoning: [
+          `Priced ${Math.abs(Math.round(100 - metrics.priceIndex))}% below median, minor adjustment optimizes revenue.`,
+          `Market stability (spread: ${metrics.priceSpreadPercent.toFixed(1)}%) supports incremental price increase.`,
+          `Maintaining competitive position while capturing available margin.`,
+        ],
+        expectedImpact: "Optimized margin without affecting conversion",
+      });
+    }
 
-    recommendations.push({
-      priority: 1,
-      action: `Increase price by ₹${Math.round(suggestedIncrease / 100) * 100} - ₹${Math.round((suggestedIncrease * 1.5) / 100) * 100}`,
-      category: "Pricing",
-      confidence: zone.confidence,
-      rule: "UNDERPRICED_INCREASE",
-      reasoning: [
-        `Leaving ₹${Math.abs(Math.round(priceDiff))} margin on the table`,
-        `Market median is ₹${metrics.medianMarketPrice.toLocaleString()}`,
-      ],
-      expectedImpact: "Improved margin while remaining competitive",
-    });
-
-    recommendations.push({
-      priority: 2,
-      action: "Maintain low price and focus on volume",
-      category: "Marketing",
-      confidence: "Medium",
-      rule: "UNDERPRICED_VOLUME",
-      reasoning: [
-        "Aggressive pricing captures market share",
-        "Build loyalty before competitors react",
-      ],
-      expectedImpact: "Market share growth, customer acquisition",
-    });
+    // Alternative: Volume strategy (only for non-severe cases)
+    if (metrics.priceIndex >= 50) {
+      recommendations.push({
+        priority: 2,
+        action: "Maintain low price and focus on volume",
+        category: "Marketing",
+        confidence: "Medium",
+        rule: "UNDERPRICED_VOLUME",
+        reasoning: [
+          `Low price maintains competitive rank ${metrics.competitiveRank}, attracting price-sensitive ${customerFeedback.marketAnalysis.generalOpinion.targetAudience.toLowerCase()}.`,
+          `${customerFeedback.marketAnalysis.generalOpinion.overallSentiment} customer sentiment can be leveraged for high volume sales.`,
+          `Builds strong brand loyalty among target audience before competitors emerge.`,
+        ],
+        expectedImpact: "Market share growth, customer acquisition",
+      });
+    }
   }
 
   // UNIVERSAL RECOMMENDATIONS (apply to all zones)
 
   // Customer feedback-based action
   if (customerFeedback.marketAnalysis.customerNeeds.dealBreakers.length > 0) {
+    const dealBreaker = customerFeedback.marketAnalysis.customerNeeds.dealBreakers[0];
+    const missingFeature = customerFeedback.marketAnalysis.customerNeeds.missingFeatures[0] || "ergonomic improvements";
+    
     recommendations.push({
-      priority: 4,
+      priority: 3,
       action: `Address critical customer concerns`,
       category: "Quality",
       confidence: "High",
       rule: "UNIVERSAL_DEALBREAKERS",
       reasoning: [
-        `Deal-breakers: ${customerFeedback.marketAnalysis.customerNeeds.dealBreakers.slice(0, 2).join(", ")}`,
-        `Missing features: ${customerFeedback.marketAnalysis.customerNeeds.missingFeatures.slice(0, 2).join(", ")}`,
+        `Customer feedback highlights ${dealBreaker.toLowerCase()}, specifically ${missingFeature.toLowerCase()}, as a key concern.`,
+        `Addressing this critical design flaw removes a significant purchase barrier for ${customerFeedback.marketAnalysis.generalOpinion.targetAudience.toLowerCase()}.`,
+        `Improved ${missingFeature.toLowerCase()} enhances ergonomic support, appealing to ${customerFeedback.marketAnalysis.generalOpinion.targetAudience.toLowerCase()}.`,
       ],
       expectedImpact: "Removes purchase barriers, improves satisfaction",
     });
@@ -388,15 +506,19 @@ function generateRuleBasedRecommendations(
 
   // Marketing angle based on strengths
   if (customerFeedback.marketAnalysis.generalOpinion.strengths.length > 0) {
+    const topStrength = customerFeedback.marketAnalysis.generalOpinion.strengths[0];
+    const secondStrength = customerFeedback.marketAnalysis.generalOpinion.strengths[1] || "quality construction";
+    
     recommendations.push({
-      priority: 5,
+      priority: 4,
       action: "Highlight product strengths in marketing",
       category: "Marketing",
       confidence: "High",
       rule: "UNIVERSAL_STRENGTHS",
       reasoning: [
-        `Customers praise: ${customerFeedback.marketAnalysis.generalOpinion.strengths.slice(0, 2).join(", ")}`,
-        "Proven selling points from actual buyers",
+        `Customers highly praise ${topStrength.toLowerCase()} and ${secondStrength.toLowerCase()}.`,
+        `Marketing should emphasize ergonomic benefits and ${secondStrength.toLowerCase()} for durability.`,
+        `Highlighting proven strengths directly addresses customer motivators and reduces price sensitivity.`,
       ],
       expectedImpact: "Better positioning, reduced price sensitivity",
     });
@@ -404,14 +526,15 @@ function generateRuleBasedRecommendations(
 
   // Competitive advantage
   recommendations.push({
-    priority: 6,
+    priority: 5,
     action: "Offer superior service or faster delivery",
     category: "Value-Add",
     confidence: "Medium",
     rule: "UNIVERSAL_SERVICE",
     reasoning: [
-      `Target: ${customerFeedback.marketAnalysis.generalOpinion.targetAudience}`,
-      "Service quality matters more than small price differences",
+      `Superior service enhances ${customerFeedback.marketAnalysis.generalOpinion.overallSentiment.toLowerCase()} customer sentiment, fostering brand advocacy.`,
+      `Faster delivery meets expectations of ${customerFeedback.marketAnalysis.generalOpinion.targetAudience.toLowerCase()}.`,
+      `Value-added services can differentiate product beyond just price for target audience.`,
     ],
     expectedImpact: "Differentiation, repeat customers",
   });

@@ -56,11 +56,18 @@ INSTRUCTIONS:
    - Storage capacity or specifications
    - Any visible unique features
 2. Search the web thoroughly to find THIS EXACT PRODUCT from as many different retailers and e-commerce websites as possible
-3. Include all retailers you can find - aim for comprehensive coverage (Amazon.in, Flipkart, official brand stores, Croma, Reliance Digital, Vijay Sales, Tata Cliq, local retailers, price comparison sites, etc.)
+3. Include all retailers you can find - aim for comprehensive coverage across all e-commerce platforms, official brand stores, local retailers, and price comparison sites
 4. Extract the exact price in Indian Rupees (₹) from each website
 5. Include a brief description or any key details (like offers, variants, availability)
 6. Match the product based on the image - ensure the variant/color matches what's shown in the image
-7. Return the data in valid JSON format with the following structure:
+7. **CRITICAL - URL FORMAT**: Generate a VALID SEARCH URL for each retailer.
+   - Use the retailer's standard search endpoint format
+   - Common patterns: /search?q=, /s?k=, /search?keyword=, /search/?searchText=
+   - Replace spaces in product name with + or %20
+   - Include full product name with model and variant in the search query
+   - The URL should open the retailer and automatically search for the product
+   - Example format: https://www.RETAILER.com/search?q=Product+Model+Variant
+8. Return the data in valid JSON format with the following structure:
 
 {
     "product": "exact product name with variant details",
@@ -70,24 +77,31 @@ INSTRUCTIONS:
             "website": "Website Name",
             "price": "₹XX,XXX",
             "description": "Original Description of the product in that website(offers/details)",
-            "url": "product link on that website"
+            "url": "Valid search URL (e.g., https://www.retailer.com || .in/search?q=Product+Name)"
         }
     ]
 }
 
-8. If a price is not available on a website, skip that website
-9. Ensure all prices are current and from live web searches
-10. Sort results by price (lowest to highest)
-11. Return ONLY valid JSON, no additional text or markdown
-12. It should return at least 5 retailers
-13. Use the image(s) to ensure you're finding the EXACT variant shown`
+9. If a price is not available on a website, skip that website
+10. Ensure all prices are current and from live web searches
+11. Sort results by price (lowest to highest)
+12. Return ONLY valid JSON, no additional text or markdown
+13. It should return at least 5 retailers
+14. Use the image(s) to ensure you're finding the EXACT variant shown`
     : `You are a helpful assistant that searches the web for product prices across multiple retailers.
 INSTRUCTIONS:
 1. Search the web thoroughly to find the product price from as many different retailers and e-commerce websites as possible
-2. Include all retailers you can find - aim for comprehensive coverage (Amazon.in, Flipkart, official brand stores, Croma, Reliance Digital, Vijay Sales, Tata Cliq, local retailers, price comparison sites, etc.)
+2. Include all retailers you can find - aim for comprehensive coverage across all e-commerce platforms, official brand stores, local retailers, and price comparison sites
 3. Extract the exact price in Indian Rupees (₹) from each website
 4. Include a brief description or any key details (like offers, variants, availability)
-5. Return the data in valid JSON format with the following structure:
+5. **CRITICAL - URL FORMAT**: Generate a VALID SEARCH URL for each retailer.
+   - Use the retailer's standard search endpoint format
+   - Common patterns: /search?q=, /s?k=, /search?keyword=, /search/?searchText=
+   - Replace spaces in product name with + or %20
+   - Include full product name with model and variant in the search query
+   - The URL should open the retailer and automatically search for the product
+   - Example format: https://www.RETAILER.com/search?q=Product+Model+Variant
+6. Return the data in valid JSON format with the following structure:
 
 {
     "product": "product name",
@@ -97,16 +111,16 @@ INSTRUCTIONS:
             "website": "Website Name",
             "price": "₹XX,XXX",
             "description": "Original Description of the product in that website(offers/details)",
-            "url": "product link on that website"
+            "url": "Valid search URL (e.g., https://www.retailer.com/search?q=Product+Name)"
         }
     ]
 }
 
-6. If a price is not available on a website, skip that website
-7. Ensure all prices are current and from live web searches
-8. Sort results by price (lowest to highest)
-9. Return ONLY valid JSON, no additional text or markdown
-10. It should return at least 5 retailers`;
+7. If a price is not available on a website, skip that website
+8. Ensure all prices are current and from live web searches
+9. Sort results by price (lowest to highest)
+10. Return ONLY valid JSON, no additional text or markdown
+11. It should return at least 5 or 7 and max 10 retailers`;
 
   // Build the input object
   const input: any = {
@@ -123,7 +137,7 @@ INSTRUCTIONS:
     provider: "vertex",
     model: "gemini-2.5-flash",
     temperature: 0.1,
-    maxTokens: 5000, // Increased to prevent truncation
+    maxTokens: 40000, // Increased to prevent truncation
     systemPrompt,
     output: {
       format: "json",
