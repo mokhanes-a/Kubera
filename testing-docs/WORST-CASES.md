@@ -42,47 +42,6 @@ This folder contains 3 critical test cases demonstrating system behavior under *
 - **Price Index**: [XXX]% (>130% threshold)
 - **Classification**: **SEVERELY OVERPRICED**
 
-### 📸 Test Evidence
-
-#### Web Search Results
-![Extreme Overpricing - Market Search](./screenshots/extreme-overpriced-search.png)
-
-```json
-{
-  "product": "Product Name",
-  "results": [
-    {
-      "sno": 1,
-      "website": "Retailer A",
-      "price": "₹10,999",
-      "description": "..."
-    },
-    {
-      "sno": 2,
-      "website": "Retailer B",
-      "price": "₹11,499",
-      "description": "..."
-    }
-  ],
-  "median": 10999
-}
-```
-
-#### Pricing Recommendation Output
-![Extreme Overpricing - Recommendation](./screenshots/extreme-overpriced-output.png)
-
-```json
-{
-  "recommendation": "LOWER_PRICE",
-  "suggestedPrice": {
-    "min": "₹29,999",
-    "max": "₹30,999"
-  },
-  "reasoning": "Your price is SEVERELY OVERPRICED at 364% of market median...",
-  "urgency": "HIGH",
-  "priceIndex": 364
-}
-```
 
 ### ✅ Test Results
 
@@ -113,47 +72,6 @@ This folder contains 3 critical test cases demonstrating system behavior under *
 - **Price Index**: [XX]% (<50% threshold)
 - **Classification**: **SEVERELY UNDERPRICED**
 
-### 📸 Test Evidence
-
-#### Web Search Results
-![Extreme Underpricing - Market Search](./screenshots/extreme-underpriced-search.png)
-
-```json
-{
-  "product": "Product Name",
-  "results": [
-    {
-      "sno": 1,
-      "website": "Retailer A",
-      "price": "₹10,499",
-      "description": "..."
-    },
-    {
-      "sno": 2,
-      "website": "Retailer B",
-      "price": "₹11,299",
-      "description": "..."
-    }
-  ],
-  "median": 10999
-}
-```
-
-#### Pricing Recommendation Output
-![Extreme Underpricing - Recommendation](./screenshots/extreme-underpriced-output.png)
-
-```json
-{
-  "recommendation": "RAISE_PRICE",
-  "suggestedPrice": {
-    "min": "₹29,999",
-    "max": "₹30,999"
-  },
-  "reasoning": "Your price is SEVERELY UNDERPRICED at 45% of market median...",
-  "urgency": "HIGH",
-  "priceIndex": 45
-}
-```
 
 ### ✅ Test Results
 
@@ -186,32 +104,17 @@ This folder contains 3 critical test cases demonstrating system behavior under *
 ### 📸 Test Evidence
 
 #### Initial Failure
-![Web Search Failure](./screenshots/search-failure.png)
+![Web Search Failure](./screenshorts/test-web-search-fails.png)
 
-```bash
-[ERROR] Web search failed: API timeout
-[INFO] Initiating retry attempt 1/3...
-```
 
 #### Successful Retry
-![Web Search Recovery](./screenshots/search-recovery.png)
+![Web Search Recovery](./screenshorts/test-web-search-fails-and-recovery.png)
 
-```json
-{
-  "status": "success",
-  "retries": 1,
-  "results": [
-    {
-      "sno": 1,
-      "website": "Retailer A",
-      "price": "₹XX,XXX",
-      "description": "..."
-    }
-  ]
-}
-```
+### ✅ Test Results
 
-### ✅ Test ResultsImmediate (<1s) | ✅ |
+| Aspect | Expected | Actual | Status |
+|--------|----------|--------|--------|
+| Error Detection | Immediate | Immediate (<1s) | ✅ |
 | Error Type | JSON parse crash | Malformed JSON response | ✅ |
 | Retry Mechanism | Automatic | Auto-triggered | ✅ |
 | Retry Count | 1-2 attempts | 1 retry (then success) | ✅ |
@@ -238,17 +141,6 @@ This folder contains 3 critical test cases demonstrating system behavior under *
 
 ## 📊 Overall Test Summary
 
-### Test Pass Rates
-- **Extreme Overpricing**: ✅ PASS
-- **Extreme Underpricing**: ✅ PASS  
-- **Error Recovery**: ✅ PASS→ ₹110,000 correctly flagged
-2. **Severe underpricing detection** (<50% index) → ₹1 correctly flagged
-3. **Market-aligned recommendations** → Both extreme cases suggested ₹10,999 median
-4. **Psychological pricing** (₹X,999) applied consistently in all scenarios
-5. **Error recovery mechanism** functions automatically (95% success on first retry)
-6. **Retry logic** prevents single-point failures (2 attempts with 2s delay)
-7. **Graceful termination** when all retries exhausted
-
 ### ⚠️ Edge Cases Handled
 - Products priced 10x above market median (1000% overpricing)
 - Products priced at ₹1 (99.99% underpricing)
@@ -263,17 +155,12 @@ This folder contains 3 critical test cases demonstrating system behavior under *
 - **Current Handling**: Retry mechanism (works in 95% of failures)
 - **Impact**: 2-4 second delay when crashes occur
 - **Root Cause**: LLM sometimes generates invalid JSON format
-- **Need to Improve**:
-  - [ ] Implement JSON schema validation on LLM side
-  - [ ] Add structured output enforcement in prompt
-  - [ ] Pre-parse response before full parsing attempt
-  - [ ] Log and analyze crash patterns for prompt optimization
+
 
 #### Issue 2: Response Time Variance
 - **Observation**: 23-25 seconds for extreme cases (vs 15-20s normal)
 - **Acceptable**: Yes, extreme cases require more processing
-- **No action required**: Performance within acceptable rangetions automatically
-6. **Retry logic** prevents single-point failures
+
 
 ### ⚠️ Edge Cases Handled
 - Products priced 3-4x above market median
@@ -300,7 +187,3 @@ All worst-case scenarios are **handled correctly** by the Kubera pricing engine:
 - `Web search reponces fails and regenerate.mov` - Full recording of failure/recovery cycle
 
 ---
-
-*Test conducted: January 19, 2026*  
-*Tester: [Your Name]*  
-*Environment: Production Kubera v1.0*
