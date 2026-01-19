@@ -5,6 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+
 # Environment variables
 .env
 .env.local
@@ -22,6 +23,7 @@ out/
 # Testing
 coverage/
 .nyc_output/
+test-reports/
 
 # IDE and Editor
 .vscode/
