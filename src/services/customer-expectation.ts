@@ -3,25 +3,24 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-// Type definitions for customer feedback analysis
 export interface CustomerOpinion {
   overallSentiment: "Positive" | "Mixed" | "Negative";
-  rating: string; // e.g., "4.2/5"
-  strengths: string[]; // What customers love
-  weaknesses: string[]; // What customers complain about
-  commonPraises: string[]; // Frequently mentioned positive points
-  commonComplaints: string[]; // Frequently mentioned negative points
-  targetAudience: string; // Who is buying this product
-  competitorComparison?: string; // How it compares to competitors
+  rating: string;
+  strengths: string[];
+  weaknesses: string[];
+  commonPraises: string[];
+  commonComplaints: string[];
+  targetAudience: string;
+  competitorComparison?: string;
 }
 
 export interface CustomerNeeds {
-  mustHaveFeatures: string[]; // Essential features customers expect
-  desiredImprovements: string[]; // What customers want to be better
-  priceSensitivity: string; // Price expectations and value perception
-  missingFeatures: string[]; // Features customers wish existed
-  dealBreakers: string[]; // Issues that prevent purchases
-  purchaseMotivators: string[]; // What convinces customers to buy
+  mustHaveFeatures: string[];
+  desiredImprovements: string[];
+  priceSensitivity: string;
+  missingFeatures: string[];
+  dealBreakers: string[];
+  purchaseMotivators: string[];
 }
 
 export interface CustomerFeedbackResponse {
@@ -31,11 +30,11 @@ export interface CustomerFeedbackResponse {
     customerNeeds: CustomerNeeds;
   };
   actionableInsights: {
-    toIncreaseOrders: string[]; // Specific actions to boost sales
-    priorityImprovements: string[]; // What to fix first
-    marketingAngles: string[]; // How to position the product
+    toIncreaseOrders: string[];
+    priorityImprovements: string[];
+    marketingAngles: string[];
   };
-  dataSource: string; // Where the feedback was gathered from
+  dataSource: string;
   analysisDate: string;
 }
 
@@ -43,12 +42,6 @@ export interface CustomerFeedbackOptions {
   productName: string;
 }
 
-/**
- * Analyze customer expectations and feedback for a product
- * Gathers insights for market analysis and sales optimization
- * @param options - Product name to analyze
- * @returns Structured customer feedback and market analysis
- */
 export async function analyzeCustomerFeedback(
   options: CustomerFeedbackOptions
 ): Promise<CustomerFeedbackResponse> {
@@ -75,23 +68,26 @@ Search for:
 
 Provide data-driven insights for market analysis and sales optimization.`,
     },
-    provider: "vertex", // Required for web search grounding
+    provider: "vertex",
     model: "gemini-2.5-flash",
-    temperature: 0.3, // Lower temperature for factual analysis
-    maxTokens: 5000, // Comprehensive analysis needs more tokens
+    temperature: 0.3,
+    maxTokens: 25000,
     systemPrompt: `You are a market research analyst specializing in product-specific customer feedback analysis.
+
+PRODUCT TO ANALYZE: "${productName}"
+CRITICAL: Analyze ONLY feedback about "${productName}" - if you cannot find specific data, say so clearly.
 
 YOUR MISSION:
 Analyze customer feedback ONLY about the PRODUCT ITSELF - its features, quality, design, and functionality.
 
-⚠️ IMPORTANT - IGNORE THESE (Common to all e-commerce, not product-specific):
+IMPORTANT - IGNORE THESE (Common to all e-commerce, not product-specific):
 - Delivery issues (late delivery, packaging damage, wrong item sent)
 - Customer service complaints (returns, refunds, response time)
 - Website/app issues (payment problems, order tracking)
 - Seller-specific issues (fraud, fake products from specific sellers)
 - Shipping and logistics problems
 
-✅ FOCUS ONLY ON:
+FOCUS ONLY ON:
 - Product quality and build
 - Product features and functionality
 - Product design and aesthetics
@@ -101,7 +97,7 @@ Analyze customer feedback ONLY about the PRODUCT ITSELF - its features, quality,
 
 ANALYSIS FRAMEWORK:
 
-📊 GENERAL OPINION (Product-Specific):
+GENERAL OPINION (Product-Specific):
 - Overall sentiment based on product quality
 - Rating based on product satisfaction
 - Product strengths (design, features, quality)
@@ -111,7 +107,7 @@ ANALYSIS FRAMEWORK:
 - Who is this product best suited for
 - How does this product compare feature-wise with competitors
 
-🎯 CUSTOMER NEEDS (Product Features):
+CUSTOMER NEEDS (Product Features):
 - Essential product features customers expect
 - Product improvements customers want
 - Is the product worth its price
@@ -119,7 +115,7 @@ ANALYSIS FRAMEWORK:
 - Product issues that prevent purchase
 - Product features that convince customers to buy
 
-💡 ACTIONABLE INSIGHTS (Product Improvement):
+ACTIONABLE INSIGHTS (Product Improvement):
 - How to improve the product itself
 - What product features to highlight
 - How to position product against competitors
@@ -128,6 +124,11 @@ DATA COLLECTION:
 - Focus on product reviews mentioning quality, features, design
 - Ignore reviews about delivery, seller, or service issues
 - Extract only product-related feedback
+
+IF PRODUCT NOT FOUND OR AMBIGUOUS:
+- Return general market insights for the product category
+- Clearly state in the response that specific product data is limited
+- Do NOT return data about completely different products (e.g., vaping products when asked about smartwatches)
 
 RESPONSE FORMAT:
 Return ONLY valid JSON in this exact structure:
@@ -185,12 +186,9 @@ Return ONLY valid JSON, no markdown formatting, no additional text.`,
     },
   });
 
-  // Parse and return the JSON response with error handling
   try {
-    // Clean the response - remove markdown code blocks if present
     let cleanedContent = result.content.trim();
 
-    // Remove ```json and ``` markers
     if (cleanedContent.startsWith("```json")) {
       cleanedContent = cleanedContent.replace(/^```json\s*\n?/, "");
     } else if (cleanedContent.startsWith("```")) {
@@ -203,47 +201,38 @@ Return ONLY valid JSON, no markdown formatting, no additional text.`,
 
     cleanedContent = cleanedContent.trim();
 
-    // Validate JSON completeness
     if (!cleanedContent.endsWith("}")) {
-      console.error("⚠️  Response appears truncated (doesn't end with '}')\n");
+      console.error("Response appears truncated");
       console.error("Token usage:", result.usage);
-      throw new Error(
-        `Incomplete JSON response - Analysis was truncated. Try increasing maxTokens.`
-      );
+      throw new Error("Incomplete JSON response. Try increasing maxTokens.");
     }
 
-    // Count braces to check balance
     const openBraces = (cleanedContent.match(/{/g) || []).length;
     const closeBraces = (cleanedContent.match(/}/g) || []).length;
 
     if (openBraces !== closeBraces) {
-      console.error("⚠️  JSON structure is unbalanced\n");
+      console.error("JSON structure is unbalanced");
       console.error(`Open braces: ${openBraces}, Close braces: ${closeBraces}`);
-      throw new Error(
-        `Malformed JSON response - brace mismatch (${openBraces} open, ${closeBraces} close)`
-      );
+      throw new Error(`Malformed JSON response - brace mismatch (${openBraces} open, ${closeBraces} close)`);
     }
 
     const parsedResult: CustomerFeedbackResponse = JSON.parse(cleanedContent);
 
-    // Validate structure
     if (
       !parsedResult.product ||
       !parsedResult.marketAnalysis ||
       !parsedResult.marketAnalysis.generalOpinion ||
       !parsedResult.marketAnalysis.customerNeeds
     ) {
-      throw new Error(
-        "Invalid response structure - missing required fields in market analysis"
-      );
+      throw new Error("Invalid response structure - missing required fields in market analysis");
     }
 
     return parsedResult;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    console.error("\n❌ JSON Parsing Error:", errorMessage);
-    console.error("\n📊 Response Metadata:");
+    console.error("\nJSON Parsing Error:", errorMessage);
+    console.error("\nResponse Metadata:");
     console.error("  - Provider:", result.provider);
     console.error("  - Model:", result.model);
     console.error("  - Response time:", result.responseTime, "ms");
@@ -251,13 +240,10 @@ Return ONLY valid JSON, no markdown formatting, no additional text.`,
     if (result.usage) {
       console.error("  - Input tokens:", result.usage.input);
       console.error("  - Output tokens:", result.usage.output);
-      console.error(
-        "  - Total tokens:",
-        (result.usage.input || 0) + (result.usage.output || 0)
-      );
+      console.error("  - Total tokens:", (result.usage.input || 0) + (result.usage.output || 0));
     }
 
-    console.error("\n📝 Raw response (first 500 chars):");
+    console.error("\nRaw response (first 500 chars):");
     console.error(result.content.substring(0, 500) + "...\n");
 
     throw new Error(`Failed to analyze customer feedback: ${errorMessage}`);

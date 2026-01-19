@@ -52,7 +52,7 @@ async function withRetry<T>(
 }
 
 async function main() {
-  const productName = "Transformer Series Gaming Chair";
+  const productName = "Armour Pro";
 
   console.log("\n" + "=".repeat(60));
   console.log("🚀 KUBERA - AI-Powered Pricing & Market Analysis");
@@ -64,7 +64,7 @@ async function main() {
   let priceResult: WebSearchResponse;
   try {
     priceResult = await withRetry(
-      () => searchProductPrices({ productName , images: ["test/test2.png"]}),
+      () => searchProductPrices({ productName , images: []}),
       "Price search"
     );
     showComplete(`Found ${priceResult.results.length} retailers`);
@@ -99,7 +99,12 @@ async function main() {
     const needs = feedbackResult.marketAnalysis.customerNeeds;
     
     console.log(`\n   📈 Overall Sentiment: ${opinion.overallSentiment}`);
-    console.log(`   ⭐ Average Rating: ${opinion.rating}`);
+    
+    // Only show rating if available
+    if (opinion.rating && opinion.rating !== "Not available from provided data" && opinion.rating !== "N/A") {
+      console.log(`   ⭐ Average Rating: ${opinion.rating}`);
+    }
+    
     console.log(`   🎯 Target Audience: ${opinion.targetAudience}`);
     
     if (opinion.strengths?.length > 0) {
@@ -213,7 +218,7 @@ async function main() {
     console.log(`   ${statusEmoji} Priced COMPETITIVELY`);
   }
 
-  console.log(`   ${Math.abs(priceDiff).toFixed(1)}% ${priceDiff > 0 ? "above" : "below"} median`);
+  console.log(`   ${Math.abs(priceDiff).toFixed(1)}% ${priceDiff >= 0 ? "above" : "below"} median`);
 
   const rankParts = marketAnalysis.pricingStatus.competitiveRank.split(" of ");
   const yourRank = parseInt(rankParts[0]);
