@@ -54,58 +54,17 @@ To document and verify that the web search API returns **non-deterministic resul
 ## 📸 Sample Response Screenshots
 
 ### Test 1 - Web Search JSON Response
-![Test 1 Response](./screenshots/test-1-response.png)
+![Test 1 Response](screenshorts/test-1-response-web-search.png)
 
-```json
-{
-  "product": "Product Name",
-  "results": [
-    {
-      "sno": 1,
-      "website": "Retailer Name",
-      "price": "₹XX,XXX",
-      "description": "Product description...",
-      "url": "https://..."
-    }
-  ]
-}
-```
 
-### Test 5 - Different Response for Same Input
-![Test 5 Response](./screenshots/test-5-response.png)
+### Test 3 - Different Response for Same Input
+![Test 3 Response](screenshorts/test-2-response-web-search.png)
 
-```json
-{
-  "product": "Product Name",
-  "results": [
-    {
-      "sno": 1,
-      "website": "Different Retailer",
-      "price": "₹YY,YYY",
-      "description": "Different description...",
-      "url": "https://..."
-    }
-  ]
-}
-```
 
-### Test 10 - Another Variation
-![Test 10 Response](./screenshots/test-10-response.png)
+### Test 5 - Another Variation
+![Test 5 Response](screenshorts/test-3-response-web-search.png)
 
-```json
-{
-  "product": "Product Name",
-  "results": [
-    {
-      "sno": 1,
-      "website": "Yet Another Retailer",
-      "price": "₹ZZ,ZZZ",
-      "description": "Yet another description...",
-      "url": "https://..."
-    }
-  ]
-}
-```
+
 
 ## 🔍 Key Findings
 
@@ -115,7 +74,7 @@ To document and verify that the web search API returns **non-deterministic resul
   - Expected: 3-10 retailers per search
   - Actual: 3-6 retailers (inconsistent)
   - Test 2, 8: Only 3 retailers (below optimal)
-  - Test 5: 6 retailers (above average)
+  - Test 5: 4 retailers (average)
 - **Retailer Selection Variance**: Different combinations each run
 - **Price Data Variance**: 10% of tests showed different median (₹11,499 vs ₹10,999)
 
@@ -151,73 +110,9 @@ To document and verify that the web search API returns **non-deterministic resul
 - **Expected**: Minimum 3-5 reliable retailers
 - **Impact**: Insufficient data for accurate market analysis
 
-### Production Implications:
-
-| Scenario | Risk Level | Business Impact |
-|----------|-----------|-----------------|
-| Inconsistent retailer count | 🔴 HIGH | Unreliable pricing recommendations |
-| Market median variance | 🔴 HIGH | Wrong price suggestions (10-40% error) |
-| URL accessibility | 🟡 MEDIUM | User friction, manual searches needed |
-| Response time (10-30s) | 🟢 LOW | Acceptable for batch processing |
-
-### Immediate Actions Required:
-
-#### Priority 1: Stabilize Web Search Results
-- [ ] Implement multi-query aggregation (run 3 searches, merge results)
-- [ ] Add result count validation (reject <5 retailers, retry)
-- [ ] Cache successful searches (15-minute TTL)
-- [ ] Fallback to historical data if fresh search fails
-
-#### Priority 2: Improve URL Quality
-- [ ] Implement direct scraping for top 3-5 retailers
-- [ ] Add URL validation before returning to user
-- [ ] Provide clear "Search on [Retailer]" buttons instead of broken links
-- [ ] Log URL failure rates per retailer
-
-#### Priority 3: Response Time Optimization
-- [ ] Parallelize web search and customer analysis (save 5-10s)
-- [ ] Add progress indicators for long-running searches
-- [ ] Implement timeout handling (30s max per stage)
-## ⚠️ Implications
-
-### For Production Use:
-1. **Cannot rely on consistent pricing data** from run to run
-2. **User experience may vary** - same product search gives different results
-3. **Caching is essential** to provide stable pricing for short periods
-4. **Multiple runs recommended** for comprehensive market coverage
-
-### Recommendations:
-- ✅ Implement response caching (5-15 minute TTL)
-- ✅ Run multiple searches and aggregate results
-- ✅ Store historical data for trend analysis
-- ✅ Show "last updated" timestamp to users
-
-## 🎥 Video Evidence
-
-All 10 test recordings are available in this folder:
-- `test-1.mov` through `test-10.mov`
-
-Each video shows:
-1. Terminal startup with same product input
-2. Web search API call and response
-3. Complete JSON output display
-4. Timestamps proving sequential execution
-
-## 📈 Statistical Analysis
-
-- **Average Retailers per Test**: [X.X]
-- **Most Common Retailer**: [Retailer Name] ([X]/10 appearances)
-- **Price Median Variance**: ±[X]%
-- **Response Time**: [X]s average
-
+---
 ## 🏁 Conclusion
 
 This test series **definitively proves** that the web search API exhibits **non-deterministic behavior**. The system correctly finds product prices but returns different retailer combinations and pricing data across identical queries.
 
-**Status**: ✅ **Expected Behavior** - This is inherent to dynamic web search APIs, not a bug.
-
 ---
-
-*Test conducted: January 19, 2026*  
-*Tester: [Your Name]*  
-*Environment: Production Kubera v1.0*

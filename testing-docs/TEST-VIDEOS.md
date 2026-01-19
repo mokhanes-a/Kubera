@@ -39,7 +39,6 @@ This folder contains 4 comprehensive test videos demonstrating the **Kubera pric
 ### 📸 Test Evidence
 
 #### Input & Web Search
-![Equal Pricing - Input](./screenshots/equal-price-input.png)
 
 ```json
 {
@@ -86,7 +85,6 @@ This folder contains 4 comprehensive test videos demonstrating the **Kubera pric
 ```
 
 #### Pricing Analysis Output
-![Equal Pricing - Output](./screenshots/equal-price-output.png)
 
 ```json
 {
@@ -151,7 +149,7 @@ This folder contains 4 comprehensive test videos demonstrating the **Kubera pric
 ### 📸 Test Evidence
 
 #### Input & Web Search
-![Overpricing - Input](./screenshots/overpriced-input.png)
+
 
 ```json
 {
@@ -169,7 +167,6 @@ This folder contains 4 comprehensive test videos demonstrating the **Kubera pric
 ```
 
 #### Pricing Analysis Output
-![Overpricing - Output](./screenshots/overpriced-output.png)
 
 ```json
 {
@@ -210,10 +207,10 @@ This folder contains 4 comprehensive test videos demonstrating the **Kubera pric
 - **Expected Classification**: **UNDERPRICED**
 - **Expected Recommendation**: RAISE_PRICE
 
-### 📸 Test Evidence
+### 📸 Test
 
 #### Input & Web Search
-![Underpricing - Input](./screenshots/underpriced-input.png)
+
 
 ```json
 {
@@ -231,7 +228,7 @@ This folder contains 4 comprehensive test videos demonstrating the **Kubera pric
 ```
 
 #### Pricing Analysis Output
-![Underpricing - Output](./screenshots/underpriced-output.png)
+
 
 ```json
 {
@@ -266,91 +263,6 @@ This folder contains 4 comprehensive test videos demonstrating the **Kubera pric
 
 ---
 
-## 🔄 Test 4: Overall Output - Complete Workflow
-
-### Test Setup
-- **Scenario**: End-to-end workflow demonstration
-- **Stages Covered**:
-  1. Input normalization
-  2. Web search execution
-  3. Pricing metrics calculation
-  4. Zone classification
-  5. Rules evaluation
-  6. LLM enhancement
-  7. Final output assembly
-
-### 📸 Test Evidence
-
-#### Complete Workflow Output
-![Overall Output](./screenshots/overall-output.png)
-
-```json
-{
-  "stages": {
-    "1_input": {
-      "productName": "Product Name",
-      "userPrice": 15999,
-      "imageUrl": "https://..."
-    },
-    "2_webSearch": {
-      "status": "success",
-      "resultsCount": 5,
-      "median": 10999
-    },
-    "3_metrics": {
-      "priceIndex": 145,
-      "spread": 2000,
-      "rank": 1,
-      "percentile": 95
-    },
-    "4_classification": {
-      "zone": "OVERPRICED",
-      "confidence": "HIGH"
-    },
-    "5_rules": {
-      "recommendation": "LOWER_PRICE",
-      "suggestedMin": 10999,
-      "suggestedMax": 11499
-    },
-    "6_prioritization": {
-      "urgency": "MEDIUM",
-      "factors": ["price_gap", "competitive_pressure"]
-    },
-    "7_llm": {
-      "enhancedReasoning": "Your pricing is 45% above market median...",
-      "actionableInsights": ["Adjust to ₹10,999-₹11,499 range"]
-    },
-    "8_output": {
-      "recommendation": "LOWER_PRICE",
-      "suggestedPrice": {
-        "min": "₹10,999",
-        "max": "₹11,499"
-      }
-    }
-  }
-}
-```
-
-### ✅ Test Results
-
-| Stage | Status | Notes |
-|-------|--------|-------|
-| 1. Input Normalization | ✅ PASS | Clean input parsing |
-| 2. Web Search | ✅ PASS | 5 results retrieved |
-| 3. Metrics Calculation | ✅ PASS | Index, spread, rank computed |
-| 4. Classification | ✅ PASS | OVERPRICED detected |
-| 5. Rules Evaluation | ✅ PASS | Price reduction recommended |
-| 6. Prioritization | ✅ PASS | Urgency assigned |
-| 7. LLM Enhancement | ✅ PASS | Natural language reasoning |
-| 8. Output Assembly | ✅ PASS | Final JSON formatted |
-
-### 🔍 Key Observations
-- ✅ All 8 workflow stages executed successfully
-- ✅ Data flows correctly between stages
-- ✅ Deterministic rules applied before LLM enhancement
-- ✅ Output format matches specification
-
----
 
 ## 📊 Test Summary Dashboard
 
@@ -386,30 +298,13 @@ This folder contains 4 comprehensive test videos demonstrating the **Kubera pric
 
 | Metric | Value |
 |--------|-------|
-| Average Response Time | [X.X]s |
+| Average Response Time | 30s |
 | Web Search Success Rate | 100% |
 | Workflow Completion Rate | 100% |
 | Error Rate | 0% |
 
 ---
 
-## 🎯 Key Validations
-
-### ✅ Confirmed Behaviors
-1. **Zone classification** works correctly for all three scenarios
-2. **Market-aligned recommendations** provided for over/underpriced products
-3. **Psychological pricing** (₹X,999) applied consistently
-4. **Complete workflow** executes all 8 stages successfully
-5. **Deterministic rules** applied before LLM enhancement
-6. **Output formatting** matches JSON specification
-
-### 📈 Business Value Demonstrated
-- **Competitive pricing**: Market-aligned recommendations prevent revenue loss
-- **Psychological optimization**: ₹X,999 format improves perceived value
-- **Clear reasoning**: Natural language explanations aid decision-making
-- **Actionable insights**: Specific price ranges provided
-
----
 
 ## 🏁 Conclusion
 
@@ -418,9 +313,6 @@ All pricing response scenarios **function correctly**:
 1. ✅ **Equal pricing** (₹11,000 vs ₹10,999 median) correctly identified as MARKET_ALIGNED
 2. ✅ **Overpricing** detected with market-aligned reduction recommended
 3. ✅ **Underpricing** detected with revenue-optimized increase recommended
-4. ✅ **Complete workflow** demonstrates end-to-end system reliability (8 stages)
-
-**Test Results**: ✅ **ALL TESTS PASSED** - Pricing engine production-ready.
 
 ### 📊 Performance Metrics (Actual)
 
@@ -429,20 +321,8 @@ All pricing response scenarios **function correctly**:
 | Web Search | 10-30 seconds | ✅ Acceptable |
 | Customer Analysis | 5-10 seconds | ✅ Good |
 | Market Analysis | 3-10 seconds | ✅ Excellent |
-| **Total Workflow** | **18-50 seconds** | ✅ Within SLA |
+| **Total Workflow** | **18-50 seconds** | -|
 
-### ✅ What Works Well
-
-1. **Market-aligned pricing classification** - 100% accuracy
-2. **Psychological pricing** - Consistent ₹X,999 format
-3. **Multi-action recommendations** - Marketing, quality, service suggestions
-4. **Customer sentiment integration** - 5-10% variance (minimal impact)
-5. **Deterministic rules + LLM enhancement** - Best of both worlds
-6. **Comprehensive output format** - Clear, actionable insights
-
-### 🟢 No Critical Issues in This Test Set
-
-All video tests demonstrate **expected behavior** and **production-ready quality**.
 
 ---
 
@@ -451,10 +331,7 @@ All video tests demonstrate **expected behavior** and **production-ready quality
 - `Equal-Priced-Responce.mov` - Market-aligned pricing test
 - `Over-Priced-Responce.mov` - Overpricing detection and recommendation
 - `Under-Priced-Responce.mov` - Underpricing detection and recommendation
-- `Overall-Output.mov` - Complete 8-stage workflow demonstration
+- `Overall-Output.mov` - Complete workflow demonstration
 
 ---
 
-*Test conducted: January 19, 2026*  
-*Tester: [Your Name]*  
-*Environment: Production Kubera v1.0*
